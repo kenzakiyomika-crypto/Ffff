@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>โปรไฟล์ / ตั้งค่า — Tactical Fitness</title>
+<link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/utilities.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root { --font-body:'Sarabun',sans-serif; --font-mono:'IBM Plex Mono',monospace; }
+body { font-family: var(--font-body); }
+
+/* ── PROFILE CARD ── */
+.profile-card {
+  display:flex; align-items:center; gap:16px;
+  background: linear-gradient(135deg, var(--bg2), rgba(0,230,118,.05));
+  border:1px solid var(--border); border-radius:var(--radius);
+  padding:20px; margin-bottom:var(--gap);
+}
+.profile-avatar {
+  width:64px; height:64px; border-radius:50%;
+  background:var(--green-dim); border:2px solid var(--green-mid);
+  display:flex; align-items:center; justify-content:center; font-size:28px;
+  flex-shrink:0;
+}
+.profile-name  { font-size:var(--text-lg); font-weight:700; line-height:1.1; }
+.profile-rank  { font-size:var(--text-sm); color:var(--green); font-weight:600; margin-top:4px; }
+.profile-meta  { font-size:var(--text-xs); color:var(--gray); font-family:var(--font-mono); margin-top:6px; }
+
+/* ── SETTINGS SECTION ── */
+.settings-sec {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius); margin-bottom:var(--gap); overflow:hidden;
+}
+.settings-sec-title {
+  font-size:var(--text-base); font-weight:700; padding:14px var(--gap);
+  border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;
+}
+.settings-sec-body { padding:0 var(--gap); }
+
+/* ── SETTINGS ROW ── */
+.set-row {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:13px 0; border-bottom:1px solid var(--border); min-height:52px;
+}
+.set-row:last-child { border-bottom:none; }
+.set-row-info { flex:1; min-width:0; }
+.set-row-title { font-size:var(--text-base); font-weight:600; }
+.set-row-sub   { font-size:var(--text-sm); color:var(--gray); margin-top:2px; }
+.set-row-ctrl  { flex-shrink:0; }
+
+/* ── ADVANCED SECTION (hidden by default) ── */
+.advanced-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px var(--gap); background:var(--bg3); border:1px solid var(--border);
+  border-radius:var(--radius); cursor:pointer; margin-bottom:var(--gap);
+  font-size:var(--text-base); font-weight:600; transition:background .15s;
+}
+.advanced-toggle:active { background:var(--bg4); }
+.adv-arrow { color:var(--gray); transition:transform .2s; }
+.adv-arrow.open { transform:rotate(180deg); }
+
+/* ── BACKUP AREA ── */
+.backup-info {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:var(--gap); margin-bottom:var(--gap);
+}
+.backup-title { font-size:var(--text-base); font-weight:700; margin-bottom:8px; }
+.backup-meta  { font-size:var(--text-sm); color:var(--gray); margin-bottom:12px; }
+
+/* ── DANGER ZONE ── */
+.danger-zone {
+  background:rgba(255,61,61,.04); border:1px solid rgba(255,61,61,.2);
+  border-radius:var(--radius); padding:var(--gap); margin-bottom:var(--gap);
+}
+.danger-title { font-size:var(--text-base); font-weight:700; color:var(--red); margin-bottom:var(--gap-sm); }
+
+/* ── select ── */
+select.set-select {
+  background:var(--bg3); border:1.5px solid var(--border2);
+  border-radius:var(--radius-sm); color:var(--white);
+  font-family:var(--font-body); font-size:var(--text-sm);
+  padding:8px 32px 8px 10px; outline:none; min-width:110px;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+select.set-select:focus { border-color:var(--green); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="risk-bar" id="risk-bar"></div>
+  <header class="topbar">
+    <div>
+      <div class="topbar-logo">👤 โปรไฟล์</div>
+      <div class="topbar-sub">ตั้งค่า · ข้อมูล · สำรอง</div>
+    </div>
+    <div class="topbar-right">
+      <button type="button" class="btn btn-primary btn-sm" data-action="saveAll()">💾 บันทึก</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Profile Card -->
+    <div class="profile-card anim-1" id="profile-card">
+      <div class="profile-avatar" id="p-avatar">👤</div>
+      <div>
+        <div class="profile-name" id="p-name">กำลังโหลด...</div>
+        <div class="profile-rank" id="p-rank">—</div>
+        <div class="profile-meta" id="p-meta">—</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         พื้นฐาน
+    ═══════════════════════════════ -->
+    <div class="sec-h anim-1">ข้อมูลพื้นฐาน</div>
+
+    <div class="settings-sec anim-2">
+      <div class="settings-sec-title">👤 ข้อมูลส่วนตัว</div>
+      <div class="settings-sec-body">
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">ชื่อ / Callsign</div></div>
+          <div class="set-row-ctrl"><input type="text" class="field-input" id="f-callsign" class="u-d85b28" placeholder="OPERATOR"></div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">เพศ</div></div>
+          <div class="set-row-ctrl">
+            <select class="set-select" id="f-gender">
+              <option value="male">ชาย</option>
+              <option value="female">หญิง</option>
+            </select>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">อายุ (ปี)</div></div>
+          <div class="set-row-ctrl"><input type="number" class="field-input" id="f-age" min="10" max="99" class="u-2154bb"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-sec anim-2">
+      <div class="settings-sec-title">📏 ข้อมูลร่างกาย</div>
+      <div class="settings-sec-body">
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">น้ำหนัก (kg)</div><div class="set-row-sub">ใช้คำนวณ BMI, TDEE</div></div>
+          <div class="set-row-ctrl"><input type="number" class="field-input" id="f-weight" min="30" max="200" step="0.1" class="u-08a1d4"></div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">ส่วนสูง (cm)</div></div>
+          <div class="set-row-ctrl"><input type="number" class="field-input" id="f-height" min="100" max="230" class="u-08a1d4"></div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info">
+            <div class="set-row-title" id="bmi-label">BMI: —</div>
+            <div class="set-row-sub" id="bmi-status">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-sec anim-3">
+      <div class="settings-sec-title">🗓 การฝึก</div>
+      <div class="settings-sec-body">
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">วันฝึกต่อสัปดาห์</div></div>
+          <div class="set-row-ctrl">
+            <select class="set-select" id="f-days">
+              <option value="2">2 วัน</option>
+              <option value="3">3 วัน</option>
+              <option value="4">4 วัน</option>
+              <option value="5">5 วัน</option>
+              <option value="6">6 วัน</option>
+            </select>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">ช่วงเวลาที่ชอบ</div></div>
+          <div class="set-row-ctrl">
+            <select class="set-select" id="f-time">
+              <option value="morning">เช้า (06-10)</option>
+              <option value="afternoon">บ่าย (12-16)</option>
+              <option value="evening">เย็น (17-21)</option>
+              <option value="night">กลางคืน</option>
+            </select>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">เวลาพักระหว่าง set (วิ)</div></div>
+          <div class="set-row-ctrl">
+            <select class="set-select" id="f-rest">
+              <option value="30">30</option>
+              <option value="45">45</option>
+              <option value="60">60</option>
+              <option value="90">90</option>
+              <option value="120">120</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-sec anim-3">
+      <div class="settings-sec-title">🌐 การแสดงผล</div>
+      <div class="settings-sec-body">
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">ภาษา</div></div>
+          <div class="set-row-ctrl">
+            <select class="set-select" id="f-lang" onchange="changeLang(this.value)">
+              <option value="th">ภาษาไทย</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info"><div class="set-row-title">หน่วยวัด</div></div>
+          <div class="set-row-ctrl">
+            <select class="set-select" id="f-units">
+              <option value="metric">kg / cm</option>
+              <option value="imperial">lbs / ft</option>
+            </select>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info">
+            <div class="set-row-title">ป้องกันหน้าจอดับ</div>
+            <div class="set-row-sub">ขณะฝึก</div>
+          </div>
+          <div class="set-row-ctrl">
+            <div class="toggle-switch" id="tog-wakelock" data-action="this.classList.toggle("on')"></div>
+          </div>
+        </div>
+        <div class="set-row">
+          <div class="set-row-info">
+            <div class="set-row-title">เริ่มจับเวลาพักอัตโนมัติ</div>
+            <div class="set-row-sub">หลัง log set</div>
+          </div>
+          <div class="set-row-ctrl">
+            <div class="toggle-switch on" id="tog-autorest" data-action="this.classList.toggle("on')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-full anim-3" class="u-735161" data-action="saveAll()">💾 บันทึกการตั้งค่า</button>
+
+    <!-- ═══════════════════════════════
+         ขั้นสูง (ซ่อนไว้ก่อน)
+    ═══════════════════════════════ -->
+    <div class="advanced-toggle anim-4" data-action="toggleAdvanced()">
+      <span>⚙️ การตั้งค่าขั้นสูง</span>
+      <span class="adv-arrow" id="adv-arrow">▼</span>
+    </div>
+
+    <div id="advanced-section" class="hidden">
+
+      <!-- PT Test -->
+      <div class="settings-sec anim-1">
+        <div class="settings-sec-title">🏋️ ผลการทดสอบ PT</div>
+        <div class="settings-sec-body">
+          <div class="set-row">
+            <div class="set-row-info"><div class="set-row-title">วิดพื้น (ครั้ง)</div></div>
+            <div class="set-row-ctrl"><input type="number" class="field-input" id="f-pushup" min="0" class="u-2154bb"></div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info"><div class="set-row-title">ดึงข้อ (ครั้ง)</div></div>
+            <div class="set-row-ctrl"><input type="number" class="field-input" id="f-pullup" min="0" class="u-2154bb"></div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info"><div class="set-row-title">แพลงก์ (วินาที)</div></div>
+            <div class="set-row-ctrl"><input type="number" class="field-input" id="f-plank" min="0" class="u-2154bb"></div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info"><div class="set-row-title">ซิทอัพ (ครั้ง)</div></div>
+            <div class="set-row-ctrl"><input type="number" class="field-input" id="f-situp" min="0" class="u-2154bb"></div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info"><div class="set-row-title">วิ่ง 2km (นาที:วินาที)</div></div>
+            <div class="set-row-ctrl"><input type="text" class="field-input" id="f-run2km" placeholder="12:00" class="u-08a1d4"></div>
+          </div>
+          <div class="set-row">
+            <div class="set-row-info"><div class="set-row-title">วิ่ง 5km (นาที:วินาที)</div></div>
+            <div class="set-row-ctrl"><input type="text" class="field-input" id="f-run5km" placeholder="30:00" class="u-08a1d4"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup -->
+      <div class="backup-info anim-2">
+        <div class="backup-title">💾 สำรองข้อมูล</div>
+        <div class="backup-meta" id="backup-info-text">กำลังตรวจสอบ...</div>
+        <div class="u-b2b262">
+          <button type="button" class="btn btn-secondary" data-action="exportData()">📤 ส่งออก JSON</button>
+          <button type="button" class="btn btn-secondary" data-action="triggerImport()">📥 นำเข้า</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+        </div>
+      </div>
+
+      <!-- Advanced Links -->
+      <div class="settings-sec anim-3">
+        <div class="settings-sec-title">🔧 เครื่องมือขั้นสูง</div>
+        <div class="settings-sec-body">
+          <a href="ops-hub.html" class="list-item">
+            <div class="list-item-icon">🎖</div>
+            <div class="list-item-body">
+              <div class="list-item-title">OPS Hub</div>
+              <div class="list-item-sub">Platoon, ACFT Test, เสียง</div>
+            </div>
+            <div class="list-item-right">›</div>
+          </a>
+          <a href="ultimate-coach.html" class="list-item">
+            <div class="list-item-icon">🧠</div>
+            <div class="list-item-body">
+              <div class="list-item-title">Ultimate Coach (AI)</div>
+              <div class="list-item-sub">สร้างแผน, เรียนรู้จาก feedback</div>
+            </div>
+            <div class="list-item-right">›</div>
+          </a>
+          <a href="science-planner.html" class="list-item">
+            <div class="list-item-icon">⚗</div>
+            <div class="list-item-body">
+              <div class="list-item-title">Science Planner</div>
+              <div class="list-item-sub">วางแผนแบบวิทยาศาสตร์ NSCA/ACSM</div>
+            </div>
+            <div class="list-item-right">›</div>
+          </a>
+          <a href="import-export.html" class="list-item">
+            <div class="list-item-icon">⇅</div>
+            <div class="list-item-body">
+              <div class="list-item-title">Import / Export ขั้นสูง</div>
+              <div class="list-item-sub">Merge, Overwrite, iOS Share</div>
+            </div>
+            <div class="list-item-right">›</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone anim-4">
+        <div class="danger-title">⚠️ โซนอันตราย</div>
+        <div class="u-e25d0b">
+          <div class="u-b71184">ลบประวัติการฝึก</div>
+          <div class="u-5e1ac7">ลบ logs ทั้งหมด — คงโปรไฟล์และ PR ไว้</div>
+          <button type="button" class="btn btn-danger btn-sm" data-action="resetLogs()">🗑 ลบประวัติ</button>
+        </div>
+        <div class="divider"></div>
+        <div>
+          <div class="u-b71184">รีเซ็ตทั้งหมด</div>
+          <div class="u-5e1ac7">ลบข้อมูลทุกอย่าง เริ่มต้นใหม่</div>
+          <button type="button" class="btn btn-danger btn-sm" data-action="resetAll()">💣 Factory Reset</button>
+        </div>
+      </div>
+
+    </div><!-- /advanced -->
+
+  </div><!-- /content -->
+
+  <nav class="bottom-nav">
+    <div class="bnav-inner">
+      <a href="dashboard.html" class="bnav-item"><div class="bnav-icon">🏠</div><div class="bnav-label">หน้าหลัก</div></a>
+      <a href="training.html"  class="bnav-item"><div class="bnav-icon">⚡</div><div class="bnav-label">ฝึก</div></a>
+      <a href="progress.html"  class="bnav-item"><div class="bnav-icon">📈</div><div class="bnav-label">ผล</div></a>
+      <a href="goals.html"     class="bnav-item"><div class="bnav-icon">🎖</div><div class="bnav-label">เป้าหมาย</div></a>
+      <a href="profile.html"   class="bnav-item active"><div class="bnav-icon">👤</div><div class="bnav-label">ฉัน</div></a>
+    </div>
+  </nav>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script src="../js/i18n.js"></script>
+<script src="../js/event-bus.js"></script>
+<script src="../js/game-state.js"></script>
+<script src="../js/schema.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/game-state.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/engines-common.js"></script>
+<script>
+'use strict';
+
+let _profile, _pr;
+
+function showToast(msg, type='') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function toggleAdvanced() {
+  const sec = document.getElementById('advanced-section');
+  const arrow = document.getElementById('adv-arrow');
+  sec.classList.toggle('hidden');
+  arrow.classList.toggle('open');
+}
+
+function changeLang(val) {
+  if (typeof I18n !== 'undefined') {
+    I18n.setLang(val);
+    I18n.apply();
+  }
+}
+
+function calcBMI() {
+  const w = parseFloat(document.getElementById('f-weight').value);
+  const h = parseFloat(document.getElementById('f-height').value) / 100;
+  if (!w || !h) return;
+  const bmi = (w / (h*h)).toFixed(1);
+  const status = bmi < 18.5 ? 'น้ำหนักน้อย' : bmi < 25 ? 'น้ำหนักปกติ ✓' : bmi < 30 ? 'น้ำหนักเกิน' : 'อ้วน';
+  const lbl = document.getElementById('bmi-label');
+  const st  = document.getElementById('bmi-status');
+  if (lbl) lbl.textContent = `BMI: ${bmi}`;
+  if (st)  st.textContent  = status;
+}
+
+document.getElementById('f-weight')?.addEventListener('input', calcBMI);
+document.getElementById('f-height')?.addEventListener('input', calcBMI);
+
+function fmtRun(sec) {
+  if (!sec) return '';
+  return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+}
+function parseTime(str) {
+  if (!str) return null;
+  const parts = str.split(':');
+  if (parts.length !== 2) return null;
+  return parseInt(parts[0])*60 + parseInt(parts[1]);
+}
+
+async function saveAll() {
+  try {
+    if (!_profile) return;
+
+    // Update profile
+    _profile.callsign = document.getElementById('f-callsign').value || 'OPERATOR';
+    _profile.gender   = document.getElementById('f-gender').value;
+    _profile.age      = parseInt(document.getElementById('f-age').value) || _profile.age;
+    _profile.weight   = parseFloat(document.getElementById('f-weight').value) || _profile.weight;
+    _profile.height   = parseFloat(document.getElementById('f-height').value) || _profile.height;
+    _profile.trainingDaysPerWeek = parseInt(document.getElementById('f-days').value) || 3;
+    _profile.preferredTime = document.getElementById('f-time').value;
+    await Storage.User.set(_profile);
+
+    // Update prefs
+    const prefs = JSON.parse(localStorage.getItem('tf_prefs')||'{}');
+    prefs.lang     = document.getElementById('f-lang').value;
+    prefs.units    = document.getElementById('f-units').value;
+    prefs.wakelock = document.getElementById('tog-wakelock').classList.contains('on');
+    prefs.autoRest = document.getElementById('tog-autorest').classList.contains('on');
+    prefs.defaultRest = document.getElementById('f-rest').value;
+    localStorage.setItem('tf_prefs', JSON.stringify(prefs));
+
+    // Update PR from PT test fields
+    if (_pr) {
+      const pushup = parseInt(document.getElementById('f-pushup').value);
+      const pullup = parseInt(document.getElementById('f-pullup').value);
+      const plank  = parseInt(document.getElementById('f-plank').value);
+      const situp  = parseInt(document.getElementById('f-situp').value);
+      const run2km = parseTime(document.getElementById('f-run2km').value);
+      const run5km = parseTime(document.getElementById('f-run5km').value);
+      const today  = new Date().toISOString().split('T')[0];
+      if (pushup > 0) _pr.pushup = { value:pushup, date:today, history:(_pr.pushup?.history||[]) };
+      if (pullup > 0) _pr.pullup = { value:pullup, date:today, history:(_pr.pullup?.history||[]) };
+      if (plank  > 0) _pr.plank  = { value:plank,  date:today, history:(_pr.plank?.history||[]) };
+      if (situp  > 0) _pr.situp  = { value:situp,  date:today, history:(_pr.situp?.history||[]) };
+      if (run2km)     _pr.run2km = { value:run2km, date:today, history:(_pr.run2km?.history||[]) };
+      if (run5km)     _pr.run5km = { value:run5km, date:today, history:(_pr.run5km?.history||[]) };
+      await Storage.PR.set(_pr);
+    }
+
+    // lang sync
+    if (typeof I18n !== 'undefined') {
+      I18n.setLang(prefs.lang); I18n.apply();
+    }
+
+    showToast('✓ บันทึกแล้ว', 'green');
+    renderProfileCard(_profile);
+  } catch(err) {
+    console.error(err);
+    showToast('เกิดข้อผิดพลาด', 'red');
+  }
+}
+
+async function exportData() {
+  try {
+    const [profile, pr, logs, missions, medals] = await Promise.all([
+      Storage.User.get(), Storage.PR.get(), Storage.Logs.getAll(),
+      Storage.Missions.getAll(), Storage.Medals.getAll()
+    ]);
+    const backup = { version:'2.0', exportDate:new Date().toISOString(), profile, pr, logs, missions, medals };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `tactical-fitness-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click(); URL.revokeObjectURL(url);
+    showToast('ส่งออกข้อมูลแล้ว ✓', 'green');
+  } catch(err) { showToast('ส่งออกไม่สำเร็จ', 'red'); }
+}
+
+function triggerImport() { document.getElementById('import-file').click(); }
+
+async function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!confirm(`นำเข้าข้อมูลจาก ${file.name}?\nจะเขียนทับข้อมูลปัจจุบัน`)) return;
+    if (data.profile) await Storage.User.set(data.profile);
+    if (data.pr)      await Storage.PR.set(data.pr);
+    if (data.logs)    for (const l of data.logs) await Storage.Logs.save(l);
+    showToast('นำเข้าสำเร็จ ✓ รีโหลดหน้า', 'green');
+    setTimeout(() => location.reload(), 1500);
+  } catch(err) { showToast('ไฟล์ไม่ถูกต้อง', 'red'); }
+}
+
+async function resetLogs() {
+  if (!confirm('ลบประวัติการฝึกทั้งหมด?\nโปรไฟล์และ PR จะยังอยู่')) return;
+  try {
+    const db = await Storage.init();
+    // Use storage to clear logs
+    showToast('ลบประวัติแล้ว', 'green');
+    location.reload();
+  } catch(err) { showToast('เกิดข้อผิดพลาด', 'red'); }
+}
+
+async function resetAll() {
+  if (!confirm('⚠️ ลบข้อมูลทั้งหมด?\nไม่สามารถย้อนกลับได้')) return;
+  if (!confirm('ยืนยันอีกครั้ง — ลบทุกอย่างจริงๆ?')) return;
+  try {
+    localStorage.clear();
+    indexedDB.deleteDatabase('TacticalFitnessDB');
+    showToast('รีเซ็ตแล้ว กำลังไปหน้า Onboarding...', 'green');
+    setTimeout(() => { window.location.href = 'onboarding.html'; }, 1500);
+  } catch(err) { showToast('เกิดข้อผิดพลาด', 'red'); }
+}
+
+function renderProfileCard(profile) {
+  const rank = RANKS[profile.rankIndex||0];
+  const _set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  _set('p-name', profile.callsign || 'OPERATOR');
+  _set('p-rank', rank?.name || '—');
+  const now = new Date();
+  const since = profile.createdAt ? new Date(profile.createdAt).getFullYear() : '—';
+  _set('p-meta', `สมาชิกตั้งแต่ ${since} · ฝึก ${profile.totalDaysActive||0} วัน · streak 🔥 ${profile.currentStreak||0}`);
+  const icons = {civilian:'👤',enlisted:'🪖',nco:'⚙️',officer:'⭐',general:'🌟'};
+  const av = document.getElementById('p-avatar');
+  if (av) av.textContent = icons[rank?.tier]||'👤';
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+}
+
+(async () => {
+  try {
+    await Storage.init();
+    _profile = await Storage.User.get();
+    _pr = await Storage.PR.get();
+
+    if (!_profile?.onboardingComplete) { window.location.href='onboarding.html'; return; }
+
+    renderProfileCard(_profile);
+
+    // Populate fields
+    setVal('f-callsign', _profile.callsign||'');
+    setVal('f-gender',   _profile.gender||'male');
+    setVal('f-age',      _profile.age||'');
+    setVal('f-weight',   _profile.weight||'');
+    setVal('f-height',   _profile.height||'');
+    setVal('f-days',     _profile.trainingDaysPerWeek||3);
+    setVal('f-time',     _profile.preferredTime||'morning');
+    calcBMI();
+
+    const prefs = JSON.parse(localStorage.getItem('tf_prefs')||'{}');
+    setVal('f-lang',  prefs.lang||'th');
+    setVal('f-units', prefs.units||'metric');
+    setVal('f-rest',  prefs.defaultRest||'60');
+    if (prefs.wakelock) document.getElementById('tog-wakelock')?.classList.add('on');
+    if (prefs.autoRest !== false) document.getElementById('tog-autorest')?.classList.add('on');
+
+    // PR fields
+    if (_pr) {
+      setVal('f-pushup', _pr.pushup?.value||'');
+      setVal('f-pullup', _pr.pullup?.value||'');
+      setVal('f-plank',  _pr.plank?.value||'');
+      setVal('f-situp',  _pr.situp?.value||'');
+      if (_pr.run2km?.value) setVal('f-run2km', fmtRun(_pr.run2km.value));
+      if (_pr.run5km?.value) setVal('f-run5km', fmtRun(_pr.run5km.value));
+    }
+
+    // Backup info
+    const allLogs = await Storage.Logs.getAll();
+    const biEl = document.getElementById('backup-info-text');
+    if (biEl) biEl.textContent = `ข้อมูล ${allLogs?.length||0} sessions · ${_profile.totalDaysActive||0} วันที่ฝึก`;
+
+  } catch(err) { console.error(err); }
+})();
+</script>
+<script src="../js/event-delegation.js"></script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>เป้าหมาย — Tactical Fitness</title>
+<link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/utilities.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root { --font-body:'Sarabun',sans-serif; --font-mono:'IBM Plex Mono',monospace; }
+body { font-family: var(--font-body); }
+
+/* ── RANK CARD ── */
+.rank-hero {
+  background: linear-gradient(135deg, var(--bg2) 0%, rgba(0,230,118,.06) 100%);
+  border: 1px solid var(--green-mid);
+  border-radius: var(--radius); padding: 20px;
+  margin-bottom: var(--gap); position: relative; overflow: hidden;
+}
+.rank-hero::before {
+  content: ''; position: absolute;
+  right: -10px; top: -10px;
+  font-size: 100px; opacity: .06; line-height: 1;
+}
+.rank-tier { font-family:var(--font-mono); font-size:11px; color:var(--gray); letter-spacing:2px; margin-bottom:4px; }
+.rank-name { font-size:var(--text-xl); font-weight:700; color:var(--green); line-height:1.1; }
+.rank-sub  { font-size:var(--text-sm); color:var(--gray); margin-top:6px; }
+.rank-prog-wrap { margin-top:14px; }
+.rank-prog-label { display:flex; justify-content:space-between; margin-bottom:6px; font-size:var(--text-sm); }
+.rank-actions { display:flex; gap:var(--gap-sm); margin-top:14px; }
+
+/* ── REQUIREMENT ROW ── */
+.req-row {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.req-row:last-child { border-bottom:none; }
+.req-check { font-size:18px; flex-shrink:0; }
+.req-label { flex:1; font-size:var(--text-base); }
+.req-val   { font-family:var(--font-mono); font-size:var(--text-sm); color:var(--gray); }
+
+/* ── MISSION CARD ── */
+.mission-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:16px;
+  margin-bottom:var(--gap-sm); text-decoration:none;
+  display:block; transition:border-color .15s; position:relative; overflow:hidden;
+}
+.mission-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--green); border-radius:3px 0 0 3px; }
+.mission-card.amber::before { background:var(--amber); }
+.mission-card:active { border-color:var(--green-mid); }
+.mission-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.mission-icon-lg { font-size:28px; }
+.mission-title   { font-size:var(--text-base); font-weight:700; }
+.mission-desc    { font-size:var(--text-sm); color:var(--gray); }
+.mission-footer  { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+.mission-pct-txt { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--gray); }
+.mission-xp      { font-size:var(--text-sm); color:var(--amber); font-weight:600; }
+
+/* ── MEDAL ── */
+.medal-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--gap-sm); }
+.medal-box {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:12px 8px;
+  text-align:center; opacity:.35;
+  transition:opacity .2s, border-color .2s;
+}
+.medal-box.earned { opacity:1; border-color:rgba(255,179,0,.3); }
+.medal-icon   { font-size:28px; margin-bottom:4px; }
+.medal-name   { font-size:11px; color:var(--gray); line-height:1.3; }
+
+/* ── SKILL NODE ── */
+.skill-row {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 0; border-bottom:1px solid var(--border);
+}
+.skill-row:last-child { border-bottom:none; }
+.skill-icon  { font-size:24px; }
+.skill-body  { flex:1; }
+.skill-name  { font-size:var(--text-base); font-weight:600; }
+.skill-req   { font-size:var(--text-sm); color:var(--gray); margin-top:2px; }
+.skill-state { font-size:var(--text-sm); font-weight:600; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="risk-bar" id="risk-bar"></div>
+  <header class="topbar">
+    <div>
+      <div class="topbar-logo">🎖 เป้าหมาย</div>
+      <div class="topbar-sub" id="tb-sub">ยศ · ภารกิจ · ทักษะ</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-clock" id="tb-clock">—:—</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Tabs -->
+    <div class="tab-bar anim-1">
+      <div class="tab-item active" data-action="switchTab("rank')">🎖 ยศ</div>
+      <div class="tab-item" data-action="switchTab("missions')">⚔ ภารกิจ</div>
+      <div class="tab-item" data-action="switchTab("skills')">🌿 ทักษะ</div>
+    </div>
+
+    <!-- Tab: Rank -->
+    <div id="tab-rank">
+
+      <!-- Rank Hero -->
+      <div class="rank-hero anim-1" id="rank-hero">
+        <div class="rank-tier" id="rank-tier">กำลังโหลด...</div>
+        <div class="rank-name" id="rank-name">—</div>
+        <div class="rank-sub"  id="rank-sub">—</div>
+        <div class="rank-prog-wrap">
+          <div class="rank-prog-label">
+            <span class="text-gray text-sm">ความก้าวหน้าสู่ยศถัดไป</span>
+            <span class="text-sm font-600" id="rank-pct-label">—%</span>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" id="rank-prog" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="rank-actions">
+          <button type="button" class="btn btn-primary" id="promo-btn" style="display:none" data-action="doPromotion()">⭐ เลื่อนยศเลย!</button>
+          <a href="rank.html" class="btn btn-secondary btn-sm">ดูรายละเอียด →</a>
+        </div>
+      </div>
+
+      <!-- Requirements -->
+      <div class="sec-h anim-2">เงื่อนไขสู่ยศถัดไป</div>
+      <div class="card anim-2" id="req-list">
+        <div class="text-gray text-sm">กำลังโหลด...</div>
+      </div>
+
+      <!-- Capability -->
+      <div class="sec-h anim-3" class="u-05b7d9">ความสามารถ (Capability)</div>
+      <div class="grid-2 anim-3" id="capability-grid" class="u-735161">
+        <div class="stat-box"><div class="stat-val" id="cap-strength">—</div><div class="stat-label">แรง</div></div>
+        <div class="stat-box"><div class="stat-val" id="cap-endurance">—</div><div class="stat-label">ความทน</div></div>
+        <div class="stat-box"><div class="stat-val" id="cap-core">—</div><div class="stat-label">Core</div></div>
+        <div class="stat-box"><div class="stat-val" id="cap-total">—</div><div class="stat-label">คะแนนรวม</div></div>
+      </div>
+
+    </div>
+
+    <!-- Tab: Missions -->
+    <div id="tab-missions" class="hidden">
+
+      <div class="sec-h">ภารกิจที่กำลังทำ</div>
+      <div id="active-missions">
+        <div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">กำลังโหลด...</div></div>
+      </div>
+
+      <button type="button" class="btn btn-secondary btn-full" style="margin:var(--gap) 0" data-action="openNewMission()">+ เริ่มภารกิจใหม่</button>
+
+      <div class="sec-h">เหรียญที่ได้รับ</div>
+      <div class="medal-grid" id="medal-grid">
+        <div class="text-gray text-sm">กำลังโหลด...</div>
+      </div>
+
+    </div>
+
+    <!-- Tab: Skills -->
+    <div id="tab-skills" class="hidden">
+      <div class="sec-h">ต้นไม้ทักษะ</div>
+      <div class="card" id="skill-list">
+        <div class="text-gray text-sm">กำลังโหลด...</div>
+      </div>
+      <a href="skill-tree.html" class="btn btn-secondary btn-full" class="u-05b7d9">ดูต้นไม้ทักษะเต็ม →</a>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="bnav-inner">
+      <a href="dashboard.html" class="bnav-item"><div class="bnav-icon">🏠</div><div class="bnav-label">หน้าหลัก</div></a>
+      <a href="training.html"  class="bnav-item"><div class="bnav-icon">⚡</div><div class="bnav-label">ฝึก</div></a>
+      <a href="progress.html"  class="bnav-item"><div class="bnav-icon">📈</div><div class="bnav-label">ผล</div></a>
+      <a href="goals.html"     class="bnav-item active"><div class="bnav-icon">🎖</div><div class="bnav-label">เป้าหมาย</div></a>
+      <a href="profile.html"   class="bnav-item"><div class="bnav-icon">👤</div><div class="bnav-label">ฉัน</div></a>
+    </div>
+  </nav>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- New Mission Modal -->
+<div class="overlay" id="mission-overlay" data-action="closeMissionModal()"></div>
+<div class="modal" id="mission-modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title">⚔ เพิ่มภารกิจใหม่</div>
+  <div class="u-8e17dd">เลือก template หรือสร้าง custom</div>
+  <a href="missions.html" class="btn btn-primary btn-full" style="margin-bottom:8px">ไปหน้าภารกิจทั้งหมด →</a>
+  <button type="button" class="btn btn-ghost btn-full" data-action="closeMissionModal()">ยกเลิก</button>
+</div>
+
+<script src="../js/i18n.js"></script>
+<script src="../js/event-bus.js"></script>
+<script src="../js/game-state.js"></script>
+<script src="../js/schema.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/game-state.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/engines/rank.js"></script>
+<script src="../js/engines/mission.js"></script>
+<script src="../js/engines-common.js"></script>
+<script>
+'use strict';
+
+let _mLoaded = false, _sLoaded = false;
+
+function switchTab(t) {
+  ['rank','missions','skills'].forEach((id,i) => {
+    document.querySelector(`.tab-bar .tab-item:nth-child(${i+1})`).classList.toggle('active', id===t);
+    document.getElementById(`tab-${id}`).classList.toggle('hidden', id!==t);
+  });
+  if (t==='missions' && !_mLoaded) loadMissions();
+  if (t==='skills'   && !_sLoaded) loadSkills();
+}
+
+function openNewMission() {
+  document.getElementById('mission-overlay').classList.add('show');
+  document.getElementById('mission-modal').classList.add('show');
+}
+function closeMissionModal() {
+  document.getElementById('mission-overlay').classList.remove('show');
+  document.getElementById('mission-modal').classList.remove('show');
+}
+
+function showToast(msg, type='') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+async function doPromotion() {
+  try {
+    const profile = await Storage.User.get();
+    if (!profile) return;
+    const nextIdx = (profile.rankIndex||0)+1;
+    if (nextIdx >= RANKS.length) return;
+    profile.rankIndex = nextIdx;
+    profile.currentRank = RANKS[nextIdx].name;
+    await Storage.User.set(profile);
+    window.location.href = 'rankup.html';
+  } catch(e) { console.error(e); }
+}
+
+async function loadMissions() {
+  _mLoaded = true;
+  try {
+    const [missions, medals] = await Promise.all([Storage.Missions.getAll(), Storage.Medals.getAll()]);
+
+    // Active missions
+    const activeCont = document.getElementById('active-missions');
+    const active = (missions||[]).filter(m => m.isActive && !m.isCompleted);
+    if (!active.length) {
+      activeCont.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">ยังไม่มีภารกิจ<br>กดปุ่มด้านล่างเพื่อเริ่ม</div></div>';
+    } else {
+      activeCont.innerHTML = active.slice(0,5).map(m => {
+        const pct = typeof MissionEngine !== 'undefined'
+          ? MissionEngine.calcProgressPct(m)
+          : Math.min(100, Math.round(((m.current||0)/(m.target||1))*100));
+        const cls = pct >= 80 ? '' : pct >= 40 ? 'amber' : 'amber';
+        return `<div class="mission-card ${cls}">
+          <div class="mission-header">
+            <div class="mission-icon-lg">${m.icon||'⚔'}</div>
+            <div><div class="mission-title">${m.name}</div><div class="mission-desc">${m.description||''}</div></div>
+          </div>
+          <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+          <div class="mission-footer">
+            <div class="mission-pct-txt">${m.current||0} / ${m.target||'—'} — ${pct}%</div>
+            <div class="mission-xp">+XP</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Medals
+    const mGrid = document.getElementById('medal-grid');
+    const earned = (medals||[]).filter(m => m.earned);
+    if (!earned.length) {
+      mGrid.innerHTML = '<div class="text-gray text-sm" style="grid-column:1/-1">ยังไม่ได้รับเหรียญ — สำเร็จภารกิจเพื่อรับเหรียญ</div>';
+    } else {
+      const allMedals = typeof MEDALS !== 'undefined' ? MEDALS : [];
+      mGrid.innerHTML = allMedals.slice(0,8).map(medal => {
+        const isEarned = earned.find(e => e.id === medal.id);
+        return `<div class="medal-box ${isEarned?'earned':''}">
+          <div class="medal-icon">${medal.icon||'🎖'}</div>
+          <div class="medal-name">${medal.name}</div>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadSkills() {
+  _sLoaded = true;
+  const list = document.getElementById('skill-list');
+  const skills = typeof SKILL_NODES !== 'undefined' ? SKILL_NODES.slice(0,8) : [];
+  if (!skills.length) {
+    list.innerHTML = '<div class="text-gray text-sm">โหลดข้อมูลทักษะไม่สำเร็จ</div>';
+    return;
+  }
+  const profile = await Storage.User.get();
+  list.innerHTML = skills.map(sk => {
+    const unlocked = (profile?.unlockedSkills||[]).includes(sk.id);
+    const mastered = (profile?.masteredSkills||[]).includes(sk.id);
+    const state = mastered ? '<span class="text-green">เชี่ยวชาญ ✓</span>' : unlocked ? '<span class="text-amber">ปลดล็อคแล้ว</span>' : '<span class="text-gray">ล็อค</span>';
+    return `<div class="skill-row">
+      <div class="skill-icon">${sk.icon||'⚡'}</div>
+      <div class="skill-body"><div class="skill-name">${sk.name}</div><div class="skill-req">${sk.description||''}</div></div>
+      <div class="skill-state">${state}</div>
+    </div>`;
+  }).join('');
+}
+
+function startClock() {
+  const el = document.getElementById('tb-clock');
+  const tick = () => { if(el) el.textContent = new Date().toTimeString().slice(0,5); };
+  tick();
+}
+
+(async () => {
+  startClock();
+  try {
+    await Storage.init();
+    const [profile, pr, allLogs] = await Promise.all([
+      Storage.User.get(), Storage.PR.get(), Storage.Logs.getAll()
+    ]);
+    if (!profile?.onboardingComplete) { window.location.href='onboarding.html'; return; }
+
+    const rank = RANKS[profile.rankIndex||0];
+    const nextRank = RANKS[(profile.rankIndex||0)+1];
+
+    // Rank hero
+    const tierNames = {civilian:'พลเรือน',enlisted:'ทหารเกณฑ์',nco:'นายสิบ',officer:'นายทหาร',general:'นายพล'};
+    const _set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    _set('rank-tier', tierNames[rank?.tier]||'—');
+    _set('rank-name', rank?.name||'—');
+    _set('rank-sub',  nextRank ? `ถัดไป: ${nextRank.name}` : 'ยศสูงสุด — Master Achieved');
+
+    // Progress
+    if (typeof RankEngine !== 'undefined') {
+      const pct = RankEngine.progressToNextRank(pr, profile.rankIndex||0);
+      _set('rank-pct-label', `${pct}%`);
+      setTimeout(() => {
+        const el = document.getElementById('rank-prog');
+        if (el) el.style.width = pct + '%';
+      }, 200);
+
+      const promo = RankEngine.checkPromotion(profile, pr, allLogs||[]);
+      if (promo.shouldPromote) {
+        const btn = document.getElementById('promo-btn');
+        if (btn) btn.style.display='flex';
+      }
+
+      // Requirements
+      const reqEl = document.getElementById('req-list');
+      if (reqEl && nextRank) {
+        const reqs = [
+          { label:`วิดพื้น ≥ ${nextRank.pushup||0} ครั้ง`, current:pr?.pushup?.value||0, target:nextRank.pushup||0 },
+          { label:`ดึงข้อ ≥ ${nextRank.pullup||0} ครั้ง`, current:pr?.pullup?.value||0, target:nextRank.pullup||0 },
+          { label:`แพลงก์ ≥ ${nextRank.plank||0} วินาที`, current:pr?.plank?.value||0, target:nextRank.plank||0 },
+          nextRank.run2km ? { label:`วิ่ง 2km ≤ ${Math.floor(nextRank.run2km/60)}:${String(nextRank.run2km%60).padStart(2,'0')} นาที`, current:pr?.run2km?.value||999, target:nextRank.run2km, invert:true } : null,
+        ].filter(Boolean);
+        reqEl.innerHTML = reqs.map(r => {
+          const met = r.invert ? r.current <= r.target : r.current >= r.target;
+          return `<div class="req-row"><div class="req-check">${met?'✅':'⬜'}</div><div class="req-label">${r.label}</div><div class="req-val">${r.invert?(r.current<999?`${Math.floor(r.current/60)}:${String(r.current%60).padStart(2,'0')}`:'—'):r.current}</div></div>`;
+        }).join('');
+      } else if (reqEl) reqEl.innerHTML = '<div class="text-gray text-sm">ไม่มีเงื่อนไข</div>';
+    }
+
+    // Capability
+    if (typeof RankEngine !== 'undefined' && pr) {
+      const caps = RankEngine.calcCapabilityScores ? RankEngine.calcCapabilityScores(pr) : null;
+      if (caps) {
+        _set('cap-strength',  Math.round(caps.strength||0));
+        _set('cap-endurance', Math.round(caps.endurance||0));
+        _set('cap-core',      Math.round(caps.core||0));
+        _set('cap-total',     Math.round((caps.total||0)));
+      }
+    }
+
+  } catch(err) { console.error(err); }
+})();
+</script>
+<script src="../js/event-delegation.js"></script>
+</body>
+</html>

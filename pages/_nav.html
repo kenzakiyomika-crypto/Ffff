@@ -1,0 +1,51 @@
+<!-- TEMPLATE SNIPPET: Not a standalone page. charset/viewport/title are in the parent page. -->
+<!-- 
+  SHARED NAV TEMPLATE v2.0
+  Copy topbar + bottom-nav into every page
+
+  Bottom Nav 5 ปุ่ม:
+  🏠 หน้าหลัก  → dashboard.html
+  ⚡ ฝึก        → training.html  (รวม planner tab)
+  📈 ผล         → progress.html  (รวม performance + intel)
+  🎖 เป้าหมาย  → goals.html     (รวม rank + missions + skill)
+  👤 ฉัน        → profile.html   (รวม settings + export + ops)
+-->
+
+<!-- TOPBAR -->
+<div class="risk-bar" id="risk-bar"></div>
+<header class="topbar">
+  <div>
+    <div class="topbar-logo">⬡ TACTICAL</div>
+    <div class="topbar-sub" id="tb-sub">กำลังโหลด...</div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-clock" id="tb-clock">—:—</div>
+    <div class="live-dot"></div>
+  </div>
+</header>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bnav-inner">
+    <a href="dashboard.html" class="bnav-item" data-page="dashboard">
+      <div class="bnav-icon">🏠</div>
+      <div class="bnav-label" data-i18n="bnav.overview">หน้าหลัก</div>
+    </a>
+    <a href="training.html" class="bnav-item" data-page="training">
+      <div class="bnav-icon">⚡</div>
+      <div class="bnav-label" data-i18n="bnav.today">ฝึก</div>
+    </a>
+    <a href="progress.html" class="bnav-item" data-page="progress">
+      <div class="bnav-icon">📈</div>
+      <div class="bnav-label" data-i18n="bnav.progress">ผล</div>
+    </a>
+    <a href="goals.html" class="bnav-item" data-page="goals">
+      <div class="bnav-icon">🎖</div>
+      <div class="bnav-label" data-i18n="bnav.goals">เป้าหมาย</div>
+    </a>
+    <a href="profile.html" class="bnav-item" data-page="profile">
+      <div class="bnav-icon">👤</div>
+      <div class="bnav-label" data-i18n="bnav.me">ฉัน</div>
+    </a>
+  </div>
+</nav>

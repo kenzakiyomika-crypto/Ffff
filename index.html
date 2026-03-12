@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<title>TACTICAL FITNESS</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #080808; color: #00ff88;
+    font-family: 'IBM Plex Mono', monospace;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; min-height: 100dvh;
+  }
+  .splash { text-align: center; padding: 40px 20px; }
+  .logo   { font-size: 20px; letter-spacing: 4px; }
+  .sub    { font-size: 10px; color: #555; letter-spacing: 2px; margin-top: 8px; }
+  .bar-wrap { width: 160px; height: 2px; background: #1a1a1a; margin: 20px auto 0; border-radius: 1px; overflow: hidden; }
+  .bar    { height: 100%; background: #00ff88; width: 0%; transition: width .3s; }
+  .err    { color: #ff2d2d; font-size: 10px; letter-spacing: 1px; margin-top: 12px; display: none; }
+</style>
+</head>
+<body>
+<div class="splash">
+  <div class="logo">⬡ TACTICAL FITNESS</div>
+  <div class="sub" id="status-text">// INITIALIZING...</div>
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <div class="err" id="err-msg"></div>
+</div>
+
+<!-- Load order: event-bus → game-state → schema → storage → i18n → redirect -->
+<script src="./js/event-bus.js"></script>
+<script src="./js/game-state.js"></script>
+<script src="./js/schema.js"></script>
+<script src="./js/storage.js"></script>
+<script src="./js/i18n.js"></script>
+
+<script>
+(async () => {
+  'use strict';
+  const bar    = document.getElementById('bar');
+  const status = document.getElementById('status-text');
+  const errEl  = document.getElementById('err-msg');
+
+  function setProgress(pct, msg) {
+    bar.style.width    = pct + '%';
+    status.textContent = msg;
+  }
+
+  try {
+    setProgress(20, '// LOADING DATABASE...');
+    await Storage.init();
+
+    setProgress(40, '// CHECKING ENGINES...');
+    if (typeof Storage   === 'undefined') throw new Error('Storage not loaded');
+    if (typeof Schema    === 'undefined') throw new Error('Schema not loaded');
+
+    setProgress(60, '// SYNCING STATE...');
+    // Daily reset check (UTC)
+    if (typeof GameState !== 'undefined' && GameState.isStaleDay()) {
+      GameState.apply(GameState.tx.resetDaily);
+      if (typeof GameEventBus !== 'undefined') {
+        GameEventBus.emit(GameEventBus.EVENTS.DAILY_RESET, { date: GameState.utcDateStr() });
+      }
+    }
+
+    // Check onboarding
+    setProgress(75, '// LOADING PROFILE...');
+    let profile = null;
+    try { profile = await Storage.User.get(); } catch {}
+
+    setProgress(80, '// REGISTERING SERVICE WORKER...');
+    if ('serviceWorker' in navigator) {
+      try { await navigator.serviceWorker.register('./sw.js', { scope: './' }); } catch {}
+    }
+
+    setProgress(100, '// READY');
+    await new Promise(r => setTimeout(r, 200));
+
+    const dest = (!profile || !profile.onboardingComplete)
+      ? './pages/onboarding.html'
+      : './pages/dashboard.html';
+    window.location.replace(dest);
+
+  } catch (err) {
+    errEl.textContent = '// ERROR: ' + err.message;
+    errEl.style.display = 'block';
+    setTimeout(() => window.location.replace('./pages/dashboard.html'), 2000);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="../manifest.json">
+<title>TACTICAL FITNESS — SKILL TREE</title>
+<link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/utilities.css">
+<style>
+.shell{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index: 400;transition:transform .3s var(--ease-out)}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo-mark{font-family:var(--head);font-size:22px;letter-spacing:4px;color:var(--green);text-shadow:0 0 16px var(--green-glow)}
+.nav-section{padding:12px 10px 4px}
+.nav-label{font-family:var(--mono);font-size:9px;color:var(--gray2);letter-spacing:3px;padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:4px;cursor:pointer;text-decoration:none;color:var(--gray);font-family:var(--body);font-size:13px;font-weight:500;letter-spacing:.5px;transition:all .15s;border:1px solid transparent;margin-bottom:1px}
+.nav-item:hover{background:var(--bg3);color:var(--white);border-color:var(--border)}
+.nav-item.active{background:var(--green-dim);color:var(--green);border-color:rgba(0,255,136,.2)}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border)}
+.sf-rank{font-family:var(--head);font-size:14px;color:var(--green);letter-spacing:1px}
+.sf-callsign{font-family:var(--mono);font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:2px}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column}
+.topbar{height:var(--topbar-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:50}
+.topbar-title{font-family:var(--head);font-size:18px;letter-spacing:3px;color:var(--white)}
+.topbar-title span{color:var(--green)}
+.topbar-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease infinite}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.hamburger{background:none;border:none;cursor:pointer;padding:6px;display:flex;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:var(--gray)}
+.sidebar-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:299; opacity:0; pointer-events:none; transition:opacity .3s; }
+.sidebar-overlay.show { opacity:1; pointer-events:auto; }
+.content{padding:24px;max-width:1100px;display:flex;flex-direction:column;gap:20px}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-top:1px solid var(--border)}
+.bnav-inner{display:grid;grid-template-columns:repeat(5,1fr)}
+.bnav-item{display:flex;flex-direction:column;align-items:center;padding:10px 4px 12px;text-decoration:none;color:var(--gray);transition:color .15s;-webkit-tap-highlight-color:transparent}
+.bnav-item.active{color:var(--green)}
+.bnav-icon{font-size:20px;line-height:1}
+.bnav-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;margin-top:3px}
+@media(max-width:768px){.sidebar { transform:translateX(-100%) !important; }.bottom-nav{display:block}.main,.content{margin-left:0 !important}}
+@media(min-width:769px){.bottom-nav{display:none}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open { transform:translateX(0) !important;box-shadow:8px 0 40px rgba(0,0,0,.9)}}
+.track-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.track-tab{padding:8px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--gray);transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.track-tab:hover{border-color:var(--border2);color:var(--white)}
+.track-tab.active{background:var(--green-dim);border-color:rgba(0,255,136,.3);color:var(--green)}
+.track-info{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;display:flex;align-items:center;gap:16px}
+.track-icon-big{font-size:36px;flex-shrink:0}
+.track-info-name{font-family:var(--head);font-size:20px;letter-spacing:2px;color:var(--white)}
+.track-info-desc{font-family:var(--mono);font-size:10px;color:var(--gray);letter-spacing:1px;margin-top:4px;line-height:1.6}
+.track-badge{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--green);background:var(--green-dim);border:1px solid rgba(0,255,136,.2);border-radius:4px;padding:4px 8px;flex-shrink:0}
+.tree-stats{display:flex;gap:10px}
+.tree-stat{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;text-align:center}
+.tree-stat-val{font-family:var(--head);font-size:22px;color:var(--green)}
+.tree-stat-label{font-family:var(--mono);font-size:8px;color:var(--gray2);letter-spacing:2px;margin-top:2px}
+.subtree-label{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--gray);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.subtree-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.tier-row{display:flex;align-items:stretch;gap:0;position:relative}
+.tier-label-col{width:36px;flex-shrink:0;display:flex;align-items:flex-start;padding-top:14px;font-family:var(--head);font-size:11px;letter-spacing:2px;color:var(--gray2)}
+.tier-nodes{flex:1;display:flex;flex-wrap:wrap;gap:10px;padding:4px 0}
+.skill-node{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;width:calc(50% - 5px);min-width:180px;flex-shrink:0;cursor:pointer;transition:all .15s;position:relative;-webkit-tap-highlight-color:transparent}
+@media(max-width:600px){.skill-node{width:100%;min-width:0}}
+.skill-node:hover{border-color:var(--border2);transform:translateY(-1px)}
+.skill-node.unlocked{border-color:rgba(0,255,136,.25);background:linear-gradient(135deg,var(--green-dim) 0%,var(--bg2) 100%)}
+.skill-node.locked{opacity:.55}
+.skill-node.locked:hover{opacity:.8}
+.node-tier-badge{position:absolute;top:8px;right:8px;font-family:var(--head);font-size:9px;letter-spacing:2px;padding:2px 6px;border-radius:3px}
+.node-tier-badge.t1{color:var(--gray);background:rgba(255,255,255,.05)}
+.node-tier-badge.t2{color:var(--amber);background:rgba(255,170,0,.08)}
+.node-tier-badge.t3{color:#00bfff;background:rgba(0,191,255,.08)}
+.node-tier-badge.t4{color:#cc66ff;background:rgba(204,102,255,.08)}
+.node-tier-badge.t5{color:var(--green);background:var(--green-dim);box-shadow:0 0 8px rgba(0,255,136,.2)}
+.node-name{font-family:var(--body);font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;margin-right:40px;line-height:1.3}
+.skill-node.unlocked .node-name{color:var(--green)}
+.node-unlock-cond{font-family:var(--mono);font-size:9px;color:var(--gray2);letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.skill-node.unlocked .node-unlock-cond{color:rgba(0,255,136,.5)}
+.node-desc{font-family:var(--mono);font-size:9px;color:var(--gray);letter-spacing:.5px;line-height:1.6;display:none;margin-top:6px}
+.skill-node.expanded .node-desc{display:block}
+.node-status-dot{width:7px;height:7px;border-radius:50%;position:absolute;top:13px;left:12px;background:var(--border2)}
+.skill-node.unlocked .node-status-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 20px;font-family:var(--mono);font-size:11px;color:var(--white);letter-spacing:2px;opacity:0;transition:all .3s;z-index:400;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.tier-divider{display:flex;padding-left:36px;margin:0}
+.tier-divider-line{width:1px;height:14px;background:var(--border);margin-left:6px;opacity:.5}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" data-action="closeSidebar()"></div>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">⬡ TACTICAL</div>
+      <div class="u-14956d">FITNESS SYSTEM v3.0</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">// ระบบ</div>
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">◈</span> ศูนย์บัญชาการ</a>
+      <a href="training.html" class="nav-item"><span class="nav-icon">⚡</span> ฝึกวันนี้</a>
+      <a href="planner.html" class="nav-item"><span class="nav-icon">◻</span> ตารางรายเดือน</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">// วิเคราะห์</div>
+      <a href="intel-center.html" class="nav-item"><span class="nav-icon">📊</span> ศูนย์วิเคราะห์</a>
+      <a href="ops-hub.html" class="nav-item"><span class="nav-icon">🎖</span> OPS Hub</a>
+      <a href="ultimate-coach.html" class="nav-item"><span class="nav-icon">🧠</span> Ultimate Coach</a>
+      <a href="science-planner.html" class="nav-item"><span class="nav-icon">⚗</span> Science Planner</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">// ความก้าวหน้า</div>
+      <a href="performance.html" class="nav-item"><span class="nav-icon">▲</span> บันทึกผลการฝึก</a>
+      <a href="rank.html" class="nav-item"><span class="nav-icon">◆</span> ยศ &amp; ความสามารถ</a>
+      <a href="missions.html" class="nav-item"><span class="nav-icon">⚔</span> ภารกิจ &amp; เหรียญ</a>
+      <a href="skill-tree.html" class="nav-item active"><span class="nav-icon">🌿</span> ต้นไม้ทักษะ</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">// ระบบ</div>
+      <a href="settings.html" class="nav-item"><span class="nav-icon">◎</span> ตั้งค่า</a>
+      <a href="import-export.html" class="nav-item"><span class="nav-icon">⇅</span> นำเข้า / ส่งออก</a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sf-rank" id="sf-rank">—</div>
+      <div class="sf-callsign" id="sf-callsign">—</div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="hamburger" data-action="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div><div class="topbar-title">ต้นไม้ <span>ทักษะ</span></div></div>
+      <div class="topbar-right"><div class="topbar-dot"></div></div>
+    </header>
+    <div class="content">
+      <div class="track-tabs" id="track-tabs"></div>
+      <div class="track-info" id="track-info">
+        <div class="track-icon-big" id="ti-icon">⚡</div>
+        <div style="flex:1">
+          <div class="track-info-name" id="ti-name">—</div>
+          <div class="track-info-desc" id="ti-desc">—</div>
+        </div>
+        <div class="track-badge" id="ti-badge">—</div>
+      </div>
+      <div class="tree-stats">
+        <div class="tree-stat"><div class="tree-stat-val" id="stat-unlocked">0</div><div class="tree-stat-label">ปลดล็อค</div></div>
+        <div class="tree-stat"><div class="tree-stat-val" id="stat-total">0</div><div class="tree-stat-label">โหนดทั้งหมด</div></div>
+        <div class="tree-stat"><div class="tree-stat-val" id="stat-pct" style="color:var(--amber)">0%</div><div class="tree-stat-label">เชี่ยวชาญ</div></div>
+      </div>
+      <div id="tree-area" class="u-ac4e39"></div>
+    </div>
+  </div>
+</div>
+<nav class="bottom-nav">
+    <div class="bnav-inner">
+      <a href="dashboard.html" class="bnav-item"><div class="bnav-icon">🏠</div><div class="bnav-label">ภาพรวม</div></a>
+      <a href="planner.html" class="bnav-item"><div class="bnav-icon">📅</div><div class="bnav-label">ตารางฝึก</div></a>
+      <a href="training.html" class="bnav-item bnav-center"><div class="bnav-icon">⚔️</div><div class="bnav-label">ฝึกวันนี้</div></a>
+      <a href="missions.html" class="bnav-item"><div class="bnav-icon">🏅</div><div class="bnav-label">เกียรติยศ</div></a>
+      <a href="settings.html" class="bnav-item"><div class="bnav-icon">⚙️</div><div class="bnav-label">ตั้งค่า</div></a>
+    </div>
+  </nav>
+<div class="toast" id="toast"></div>
+<script src="../js/event-bus.js"></script>
+<script src="../js/game-state.js"></script>
+<script src="../js/schema.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/core.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   SKILL TREE ENGINE — Blueprint v3
+   6 Training Tracks × T1–T5 Tiers
+   Unlock conditions checked against live PR + profile data
+═══════════════════════════════════════════ */
+
+/* ── TRACK DEFINITIONS ── */
+const TRACKS = [
+  {
+    id: 'strength',
+    name: 'พลังกำลัง',
+    icon: '🏋️',
+    desc: 'Absolute strength, barbell & bodyweight max output. วัดด้วย Wilks ratio.',
+    badge: 'แนว STRENGTH',
+    color: '#ff6b35',
+  },
+  {
+    id: 'physique',
+    name: 'รูปร่าง',
+    icon: '💪',
+    desc: 'Muscle hypertrophy, body composition, volume training.',
+    badge: 'PHYSIQUE TRACK',
+    color: '#ff3d71',
+  },
+  {
+    id: 'calisthenics',
+    name: 'คาลิสเทนนิส',
+    icon: '🤸',
+    desc: 'Bodyweight mastery — push, pull, planche, front lever progressions.',
+    badge: 'CALIS TRACK',
+    color: '#00d4ff',
+  },
+  {
+    id: 'endurance',
+    name: 'ความทนทาน',
+    icon: '🏃',
+    desc: 'Aerobic base, VO2max, running economy. วัดด้วยเวลาวิ่ง 5km.',
+    badge: 'ENDURANCE TRACK',
+    color: '#00ff88',
+  },
+  {
+    id: 'hybrid',
+    name: 'ผสม',
+    icon: '⚡',
+    desc: 'HIIT, CrossFit-style WODs, mixed modal conditioning.',
+    badge: 'HYBRID TRACK',
+    color: '#ffcc00',
+  },
+  {
+    id: 'neuro',
+    name: 'ประสาทสัมผัส',
+    icon: '🧠',
+    desc: 'Agility, coordination, reaction time, balance & proprioception.',
+    badge: 'NEURO TRACK',
+    color: '#cc66ff',
+  },
+];
+
+/* ── SKILL NODES (6 tracks × ~8 nodes spanning T1–T5) ──
+   unlock: { type, target }
+     pushup_pr / pullup_pr / plank_pr   → PR value
+     run5km_pr                          → seconds (lower=better)
+     rank_index                         → RANKS index
+     total_days                         → totalDaysActive
+     streak                             → currentStreak
+     always                             → no condition
+*/
+const SKILL_DATA = {
+
+  strength: [
+    { id:'st_t1a', tier:1, name:'Bodyweight Foundation',    icon:'🧱', desc:'Push-up, Squat, Plank — basic force production patterns.', unlock:{type:'always'}          },
+    { id:'st_t1b', tier:1, name:'Pushing Mechanics',        icon:'💪', desc:'Proper push-up form, scapular stability, wrist alignment.', unlock:{type:'always'}         },
+    { id:'st_t2a', tier:2, name:'Relative Strength Ratio',  icon:'⚖️', desc:'Push-up ≥ 50 / body-weight ratio benchmarks.', unlock:{type:'pushup_pr', target:50}       },
+    { id:'st_t2b', tier:2, name:'Posterior Chain Power',    icon:'🦵', desc:'Hip hinge mastery, hamstring recruitment patterns.', unlock:{type:'rank_index', target:3}  },
+    { id:'st_t3a', tier:3, name:'Explosive Strength',       icon:'💥', desc:'Plyometric push-up, clapping push-up, rate-of-force development.', unlock:{type:'pushup_pr', target:80} },
+    { id:'st_t3b', tier:3, name:'Max Tension Protocol',     icon:'🔩', desc:'Irradiation, full-body tension drills, grinding reps.', unlock:{type:'rank_index', target:7} },
+    { id:'st_t4a', tier:4, name:'One-Arm Push-up Prep',     icon:'☝️', desc:'Archer push-up → typewriter → OAP negatives progression.', unlock:{type:'pushup_pr', target:100} },
+    { id:'st_t4b', tier:4, name:'Structural Balance',       icon:'🏗️', desc:'Horizontal vs vertical push:pull ratio optimization.', unlock:{type:'pullup_pr', target:20} },
+    { id:'st_t5',  tier:5, name:'Tactical Strength Elite',  icon:'🌟', desc:'Push-up ≥ 150 & Pull-up ≥ 35. Military elite standard.', unlock:{type:'pushup_pr', target:150} },
+  ],
+
+  physique: [
+    { id:'ph_t1a', tier:1, name:'Muscle Activation',        icon:'⚡', desc:'Mind-muscle connection, time-under-tension basics.', unlock:{type:'always'}                },
+    { id:'ph_t1b', tier:1, name:'Volume Training Intro',    icon:'📊', desc:'3×10 protocol, progressive overload fundamentals.', unlock:{type:'total_days', target:7}   },
+    { id:'ph_t2a', tier:2, name:'Push Hypertrophy',         icon:'💪', desc:'Push-up ≥ 50 consecutive, chest-focused volume sets.', unlock:{type:'pushup_pr', target:50} },
+    { id:'ph_t2b', tier:2, name:'Pull Hypertrophy',         icon:'🔝', desc:'Pull-up ≥ 8, bicep & lat mass accumulation.', unlock:{type:'pullup_pr', target:8}         },
+    { id:'ph_t3a', tier:3, name:'High-Volume Protocol',     icon:'📈', desc:'6–10 sets per muscle group per session. GVD methodology.', unlock:{type:'total_days', target:60} },
+    { id:'ph_t3b', tier:3, name:'Metabolic Stress Mastery', icon:'🔥', desc:'Pump training, drop sets, rest-pause technique.', unlock:{type:'streak', target:21}       },
+    { id:'ph_t4a', tier:4, name:'Lagging Group Fix',        icon:'🎯', desc:'Identify & prioritize weaker muscle groups with corrective volume.', unlock:{type:'rank_index', target:10} },
+    { id:'ph_t4b', tier:4, name:'Periodization for Mass',   icon:'📅', desc:'Bulk/cut cycles, caloric timing, deload week protocol.', unlock:{type:'total_days', target:120} },
+    { id:'ph_t5',  tier:5, name:'Physique Mastery',         icon:'🏆', desc:'Advanced aesthetic conditioning. Push-up ≥ 100 & Pull-up ≥ 20.', unlock:{type:'pullup_pr', target:20} },
+  ],
+
+  calisthenics: [
+    { id:'ca_t1a', tier:1, name:'Foundational Push',        icon:'📐', desc:'Full range push-up, scapular protraction, proper hollow body.', unlock:{type:'always'}    },
+    { id:'ca_t1b', tier:1, name:'Foundational Pull',        icon:'🔄', desc:'Dead hang → negative pull-up → first full pull-up.', unlock:{type:'always'}              },
+    { id:'ca_t2a', tier:2, name:'Dip Progression',          icon:'🤸', desc:'Bench dip → parallel bar dip → ring dip. Tricep dominance.', unlock:{type:'pushup_pr', target:30} },
+    { id:'ca_t2b', tier:2, name:'L-Sit Foundation',         icon:'🦵', desc:'Tuck L-sit → full L-sit on floor then parallettes.', unlock:{type:'plank_pr', target:120} },
+    { id:'ca_t3a', tier:3, name:'Muscle-up Prep',           icon:'🔁', desc:'Pull-up ≥ 15, ring row, false grip development.', unlock:{type:'pullup_pr', target:15}    },
+    { id:'ca_t3b', tier:3, name:'Handstand Foundation',     icon:'🙃', desc:'Wall handstand hold → freestanding kick-up progression.', unlock:{type:'plank_pr', target:180} },
+    { id:'ca_t4a', tier:4, name:'Front Lever Progression',  icon:'📏', desc:'Tuck → advanced tuck → straddle → full front lever.', unlock:{type:'pullup_pr', target:20} },
+    { id:'ca_t4b', tier:4, name:'Planche Progression',      icon:'🦅', desc:'Pseudo planche push-up → tuck planche → straddle planche.', unlock:{type:'pushup_pr', target:100} },
+    { id:'ca_t5',  tier:5, name:'Calisthenics Black Belt',  icon:'🥋', desc:'Muscle-up + Front Lever + Planche combination. Elite mastery.', unlock:{type:'pullup_pr', target:30} },
+  ],
+
+  endurance: [
+    { id:'en_t1a', tier:1, name:'Aerobic Base',             icon:'🫁', desc:'Comfortable 20-min jog. Building the aerobic foundation.', unlock:{type:'always'}          },
+    { id:'en_t1b', tier:1, name:'Breathing Mechanics',      icon:'💨', desc:'Nasal breathing drills, diaphragmatic control, cadence.', unlock:{type:'always'}          },
+    { id:'en_t2a', tier:2, name:'2km Benchmark',            icon:'⏱️', desc:'วิ่ง 2km < 14 นาที. Baseline military fitness standard.', unlock:{type:'run5km_pr', target:2100} },
+    { id:'en_t2b', tier:2, name:'Zone 2 Training',          icon:'💓', desc:'Long slow distance in MAF heart rate zone. Fat oxidation.', unlock:{type:'total_days', target:14} },
+    { id:'en_t3a', tier:3, name:'5km Endurance Standard',   icon:'🏅', desc:'วิ่ง 5km < 30 นาที. Sustained aerobic output.', unlock:{type:'run5km_pr', target:1800}   },
+    { id:'en_t3b', tier:3, name:'Interval Training',        icon:'🔀', desc:'400m repeats, Fartlek, tempo runs. VO2max development.', unlock:{type:'rank_index', target:5} },
+    { id:'en_t4a', tier:4, name:'5km Sub-25',               icon:'🥇', desc:'วิ่ง 5km < 25 นาที. Advanced competitive pace.', unlock:{type:'run5km_pr', target:1500}   },
+    { id:'en_t4b', tier:4, name:'Heat & Tactical Running',  icon:'🌡️', desc:'Running in gear, heat acclimation, rucksack conditioning.', unlock:{type:'rank_index', target:10} },
+    { id:'en_t5',  tier:5, name:'Elite Endurance',          icon:'🦅', desc:'วิ่ง 5km < 20 นาที. SF selection running standard.', unlock:{type:'run5km_pr', target:1200} },
+  ],
+
+  hybrid: [
+    { id:'hy_t1a', tier:1, name:'Work Capacity Intro',      icon:'⚡', desc:'AMRAP & EMOM basics. Learn to push through discomfort.', unlock:{type:'always'}          },
+    { id:'hy_t1b', tier:1, name:'Burpee Foundation',        icon:'💥', desc:'10 burpees without stopping. Full-body conditioning base.', unlock:{type:'total_days', target:3} },
+    { id:'hy_t2a', tier:2, name:'MetCon Protocol',          icon:'🔄', desc:'Metabolic conditioning circuits. 3-movement WODs.', unlock:{type:'streak', target:7}     },
+    { id:'hy_t2b', tier:2, name:'Grip & Grit',              icon:'🤛', desc:'Farmer carry, dead hang, grip endurance under fatigue.', unlock:{type:'plank_pr', target:90} },
+    { id:'hy_t3a', tier:3, name:'Chipper WODs',             icon:'📋', desc:'High-rep workouts: 100 push-ups, 100 sit-ups, 100 squats.', unlock:{type:'pushup_pr', target:60} },
+    { id:'hy_t3b', tier:3, name:'HYROX Prep',               icon:'🏭', desc:'Ski erg, sled, wall balls — functional hybrid fitness.', unlock:{type:'rank_index', target:7} },
+    { id:'hy_t4a', tier:4, name:'Tactical WOD Mastery',     icon:'🎖️', desc:'Military-style workouts — Murph, Death by Pull-ups, etc.', unlock:{type:'rank_index', target:12} },
+    { id:'hy_t4b', tier:4, name:'Competition Prep',         icon:'🏆', desc:'Peak performance timing, taper strategy, heat management.', unlock:{type:'total_days', target:90} },
+    { id:'hy_t5',  tier:5, name:'Hybrid Elite',             icon:'🌟', desc:'Push-up ≥ 100 & Pull-up ≥ 20 & 5km < 25 นาที concurrent.', unlock:{type:'run5km_pr', target:1500} },
+  ],
+
+  neuro: [
+    { id:'ne_t1a', tier:1, name:'Balance Foundation',       icon:'🧘', desc:'Single-leg stance, proprioception drills, wobble board.', unlock:{type:'always'}          },
+    { id:'ne_t1b', tier:1, name:'Reaction Drills',          icon:'⚡', desc:'Drop-catch, light board, partner mirror drills.', unlock:{type:'always'}                  },
+    { id:'ne_t2a', tier:2, name:'Agility Ladder',           icon:'🪜', desc:'Lateral shuffles, Ickey shuffle, crossover steps.', unlock:{type:'total_days', target:10} },
+    { id:'ne_t2b', tier:2, name:'Coordination Circuits',    icon:'🔄', desc:'Contra-lateral movement, rotational power, bear crawl.', unlock:{type:'streak', target:7} },
+    { id:'ne_t3a', tier:3, name:'Tactical Movement',        icon:'🎯', desc:'Directional change under load, cut & sprint, low crawl.', unlock:{type:'rank_index', target:5} },
+    { id:'ne_t3b', tier:3, name:'Mind-Body Integration',    icon:'🧠', desc:'Complex movement patterns, dual-task training, proprioceptive maps.', unlock:{type:'plank_pr', target:180} },
+    { id:'ne_t4a', tier:4, name:'Speed-Strength Complex',   icon:'🏃', desc:'Contrast training — heavy + explosive, PAP activation.', unlock:{type:'rank_index', target:10} },
+    { id:'ne_t4b', tier:4, name:'Field Assessment Protocol',icon:'🗺️', desc:'Obstacle course timing, load-bearing agility benchmark.', unlock:{type:'total_days', target:90} },
+    { id:'ne_t5',  tier:5, name:'Neuro Elite',              icon:'🔮', desc:'Elite reaction & coordination — Special Forces agility standard.', unlock:{type:'rank_index', target:15} },
+  ],
+};
+
+/* ─────────────────────────────────────────
+   STATE
+───────────────────────────────────────── */
+let activeTrack  = 'strength';
+let userProfile  = null;
+let userPR       = null;
+let unlockedIds  = new Set();
+
+/* ─────────────────────────────────────────
+   UNLOCK CHECK
+───────────────────────────────────────── */
+function isUnlocked(node) {
+  // Manual unlocks override
+  if (unlockedIds.has(node.id)) return true;
+
+  const u = node.unlock;
+  if (!u || u.type === 'always') return true;
+
+  const pr      = userPR || {};
+  const profile = userProfile || {};
+
+  switch (u.type) {
+    case 'pushup_pr':   return (pr.pushup?.value || 0)  >= u.target;
+    case 'pullup_pr':   return (pr.pullup?.value || 0)  >= u.target;
+    case 'plank_pr':    return (pr.plank?.value  || 0)  >= u.target;
+    case 'run5km_pr': {
+      const v = pr.run5km?.value;
+      return v && v > 0 && v <= u.target;
+    }
+    case 'rank_index':  return (profile.rankIndex || 0) >= u.target;
+    case 'total_days':  return (profile.totalDaysActive || 0) >= u.target;
+    case 'streak':      return (profile.currentStreak || 0) >= u.target;
+    default:            return false;
+  }
+}
+
+/* ─────────────────────────────────────────
+   UNLOCK CONDITION TEXT
+───────────────────────────────────────── */
+function unlockLabel(node) {
+  if (!node.unlock || node.unlock.type === 'always') return '✓ พร้อมเริ่ม';
+  const { type, target } = node.unlock;
+  switch (type) {
+    case 'pushup_pr':  return `Push-up ≥ ${target}`;
+    case 'pullup_pr':  return `Pull-up ≥ ${target}`;
+    case 'plank_pr':   return `Plank ≥ ${Math.floor(target/60)}:${String(target%60).padStart(2,'0')}`;
+    case 'run5km_pr':  return `วิ่ง 5km < ${Math.floor(target/60)}:${String(target%60).padStart(2,'0')}`;
+    case 'rank_index': return `ยศ ${RANKS[target]?.name || target}+`;
+    case 'total_days': return `ฝึก ${target} วัน`;
+    case 'streak':     return `Streak ${target} วัน`;
+    default:           return `—`;
+  }
+}
+
+/* ─────────────────────────────────────────
+   RENDER
+───────────────────────────────────────── */
+function renderTabs() {
+  const tabs = document.getElementById('track-tabs');
+  tabs.innerHTML = TRACKS.map(t =>
+    `<div class="track-tab${t.id === activeTrack ? ' active' : ''}"
+          data-action="switchTrack("${t.id}')">${t.icon} ${t.name}</div>`
+  ).join('');
+}
+
+function renderTrackInfo() {
+  const t = TRACKS.find(x => x.id === activeTrack);
+  document.getElementById('ti-icon').textContent  = t.icon;
+  document.getElementById('ti-name').textContent  = t.name;
+  document.getElementById('ti-desc').textContent  = t.desc;
+  document.getElementById('ti-badge').textContent = t.badge;
+}
+
+function renderStats() {
+  const nodes    = SKILL_DATA[activeTrack] || [];
+  const unlocked = nodes.filter(n => isUnlocked(n)).length;
+  document.getElementById('stat-unlocked').textContent = unlocked;
+  document.getElementById('stat-total').textContent    = nodes.length;
+  document.getElementById('stat-pct').textContent      = nodes.length
+    ? Math.round(unlocked / nodes.length * 100) + '%' : '0%';
+}
+
+function renderTree() {
+  const nodes = SKILL_DATA[activeTrack] || [];
+  const byTier = {};
+  for (const n of nodes) {
+    if (!byTier[n.tier]) byTier[n.tier] = [];
+    byTier[n.tier].push(n);
+  }
+
+  const area = document.getElementById('tree-area');
+  area.innerHTML = '';
+
+  [1,2,3,4,5].forEach(tier => {
+    if (!byTier[tier]) return;
+
+    const block = document.createElement('div');
+    block.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+
+    // Tier label
+    const label = document.createElement('div');
+    label.className = 'subtree-label';
+    label.textContent = `T${tier} — TIER ${tier}`;
+    block.appendChild(label);
+
+    // Connector line from prev tier
+    if (tier > 1) {
+      const line = document.createElement('div');
+      line.className = 'tier-divider';
+      line.innerHTML = '<div class="tier-divider-line"></div>';
+      area.appendChild(line);
+    }
+
+    // Nodes
+    const row = document.createElement('div');
+    row.className = 'tier-row';
+    const col = document.createElement('div');
+    col.className = 'tier-nodes';
+
+    byTier[tier].forEach(node => {
+      const unlocked = isUnlocked(node);
+      const card = document.createElement('div');
+      card.className = `skill-node${unlocked ? ' unlocked' : ' locked'}`;
+      card.innerHTML = `
+        <div class="node-status-dot"></div>
+        <div class="node-tier-badge t${tier}">T${tier}</div>
+        <div class="node-name">${node.icon} ${node.name}</div>
+        <div class="node-unlock-cond">${unlocked ? '✓ UNLOCKED' : '🔒 ' + unlockLabel(node)}</div>
+        <div class="node-desc">${node.desc}</div>
+      `;
+      card.addEventListener('click', () => {
+        card.classList.toggle('expanded');
+        if (unlocked && !unlockedIds.has(node.id)) {
+          showToast(`${node.icon} ${node.name} — UNLOCKED`);
+        }
+      });
+      col.appendChild(card);
+    });
+
+    row.appendChild(col);
+    block.appendChild(row);
+    area.appendChild(block);
+  });
+}
+
+function render() {
+  renderTabs();
+  renderTrackInfo();
+  renderStats();
+  renderTree();
+}
+
+/* ─────────────────────────────────────────
+   SWITCH TRACK
+───────────────────────────────────────── */
+function switchTrack(id) {
+  activeTrack = id;
+  render();
+}
+
+/* ─────────────────────────────────────────
+   TOAST
+───────────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ─────────────────────────────────────────
+   SIDEBAR
+───────────────────────────────────────── */
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-item[href]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const sb = document.getElementById('sidebar');
+      if (sb && sb.classList.contains('open')) {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        closeSidebar();
+        setTimeout(() => { window.location.href = href; }, 200);
+      }
+    });
+  });
+});
+
+
+/* ─────────────────────────────────────────
+   BOOTSTRAP
+───────────────────────────────────────── */
+async function bootstrap() {
+  try {
+    await Storage.init();
+    [userProfile, userPR] = await Promise.all([Storage.User.get(), Storage.PR.get()]);
+    // Load saved unlocks from storage
+    const savedUnlocks = await Storage.App.get();
+    if (savedUnlocks?.unlockedSkills) {
+      unlockedIds = new Set(savedUnlocks.unlockedSkills);
+    }
+    document.getElementById('sf-rank').textContent    = userProfile?.currentRank || '—';
+    document.getElementById('sf-callsign').textContent = userProfile?.callsign    || '—';
+  } catch(e) {
+    console.warn('[SkillTree] bootstrap:', e);
+  }
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', bootstrap);
+</script>
+<script src="../js/event-delegation.js"></script>
+</body>
+</html>
